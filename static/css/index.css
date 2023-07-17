@@ -18,7 +18,7 @@ body {
 }
 
 .pals-icon {
-    background: url('/3DHighlighter/static/images/pals-logo.png');
+    background: url('./static/images/pals-logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     height: 50px;
