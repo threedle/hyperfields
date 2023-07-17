@@ -215,16 +215,8 @@ with just a few gradient steps (third column).
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            We present <span class="highlighter_font">3D Highlighter</span>, a technique for localizing semantic regions on a mesh using text as input.
-            A key feature of our system is the ability to interpret “out-of-domain” localizations.
-            Our system demonstrates the ability to reason about where to place non-obviously related concepts
-            on an input 3D shape, such as adding clothing to a bare 3D animal model.
-            Our method contextualizes the text description using a neural field and colors the corresponding
-            region of the shape using a probability-weighted blend.
-            Our neural optimization is guided by a pre-trained CLIP encoder, which bypasses the need for
-            any 3D datasets or 3D annotations.
-            Thus, <span class="highlighter_font">3D Highlighter</span> is highly flexible, general, and capable of producing localizations
-            on a myriad of input shapes.
+           We introduce HyperFields, a method for generating text-conditioned NeRFs with a single forward pass or with some finetuning. Key to our approach is (i) a dynamic hypernetwork, which learns a smooth mapping from text token embeddings to the space of neural radiance fields; (ii) NeRF distillation training in which we distill scenes encoded in individual NeRFs into one dynamic hypernetwork. We demonstrate that through the above techniques, the network is able to fit over a hundred unique scenes. We further demonstrate that HyperFields learns a more general map between text and NeRFs, and consquently is capable of predicting novel in-distribution and out-of-distribution scenes either zero-shot or with a few finetuning steps. HyperFields finetuning benefits from accelerated convergence thanks to the learned general map, and is capable of synthesizing novel scenes 5 to 10 times faster than existing neural-optimization based methods. We finally demonstrate that the learned representation is smooth, through smooth interpolation of text latents across different NeRF scenes.
+
           </p>
         </div>
       </div>
