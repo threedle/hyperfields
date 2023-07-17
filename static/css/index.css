@@ -21,8 +21,8 @@ body {
     background: url('./static/images/pals-logo.png');
     background-size: contain;
     background-repeat: no-repeat;
-    height: 75px;
-    width: 150px;
+    height: 50px;
+    width: 100px;
     display: block;
 }
 
