@@ -277,7 +277,11 @@ coordinate input processed by the NeRF MLP
         <h2 class="title is-3">Zero-Shot Generalization</h2>
         <div class="content has-text-justified">
           <p>
-            <span class="highlighter_font">3D Highlighter</span> is able localize different text-specified regions on the same mesh. Our framework demonstrates the nuanced understanding required to disambiguate similar, yet distinct target text specifications such as headphones and hat on the rabbit. Additionally, our method demonstrates global semantic understanding by correctly localizing regions such as the belt and necklace on the dog which have nearly identical geometry in the localization region.
+Zero Shot In-Distribution Generalization. Faded objects are the results of HyperFields on prompts used during
+training, and opaque objects are results on unseen prompts. Note that all results are obtained in a single feedforward manner
+(i.e. no test time optimization). All types of shapes and colors are seen during training, however during inference we present
+novel unseen combinations (e.g. “red chair” is unseen during training but the model trains on the color “red” and the shape
+“chair”.
           </p>
         </div>
         <div class="overview-image">
