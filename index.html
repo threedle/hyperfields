@@ -320,10 +320,13 @@ novel unseen combinations (e.g. “red chair” is unseen during training but th
         <h2 class="title is-3">Faster Generation of scenes with  unseen Geometry and/or Attribute</h2>
         <div class="content has-text-justified">
           <p>
-            <span class="highlighter_font">3D Highlighter</span> can be used to achieve localized stylization of meshes. Once we localize a region with our method, we can apply a predefined color and texture to only that region.
+Zero Shot In-Distribution Generalization. Faded objects are the results of HyperFields on prompts used during
+training, and opaque objects are results on unseen prompts. Note that all results are obtained in a single feedforward manner
+(i.e. no test time optimization). All types of shapes and colors are seen during training, however during inference we present
+novel unseen combinations (e.g. “red chair” is unseen during training but the model trains on the color “red” and the shape
+“chair”.
           </p>
-        </div>
-        
+        </div>        
         <div class="overview-image">
           <img src="./static/images/figures/ood_result.png" type="image/png">
         </div>
