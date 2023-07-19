@@ -266,6 +266,23 @@ The dynamic hypernetwork system allows our model to dynamically update for a giv
 coordinate input processed by the NeRF MLP
                      </p>
         </div>
+  <div class="video-grid">
+    <div class="video-item">
+      <video controls>
+        <source src="./static/videos/plaid_bench.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    <div class="video-item">
+      <video controls>
+        <source src="./static/videos/plaid_bench.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    <!-- Add more video items here -->
+  </div>
+
+
       </div>
     </div>
     <!--/ Overview. -->
@@ -330,43 +347,8 @@ novel unseen combinations (e.g. “red chair” is unseen during training but th
     </div>
     <!--/ Applications. -->
 
-    <!-- Limitations. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <hr class="divider" />
-        <h2 class="title is-3">Limitations</h2>
-        <div class="content has-text-justified">
-          <p>
-            The strength of the supervision signal can vary for different mesh and prompt combinations. In cases where the signal is strong, non-determinism has little to no impact and the optimization produces nearly identical results every run. However, when the supervision signal is weaker, the optimization is more sensitive to non-determinism and we see that the highlighted regions can differ significantly between runs.
-            For example, when applied to this human mesh, 3D Highlighter is robust to different seeds when using the target prompt shoes (left); while the target prompt necklace produces more variable results (right).
-          </p>
-        </div>
-        <div class="overview-image">
-          <img src="./static/images/figures/sensitivity.png" type="image/png">
-        </div>
-      </div>
-    </div>
-    <!--/ Limitations. -->
 
-    <!-- Gallery. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <hr class="divider" />
-        <h2 class="title is-3">Gallery</h2>
-        <div class="content has-text-justified">
-          <p>
-            We present a gallery of results with additional mesh and prompt combinations.
-          </p>
-        </div>
-        <div class="overview-image">
-          <img src="./static/images/figures/gallery.png" type="image/png">
-        </div>
-      </div>
-    </div>
-    <!--/ Gallery. -->
-  </div>
-</section>
-
+<!--
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
@@ -378,7 +360,7 @@ novel unseen combinations (e.g. “red chair” is unseen during training but th
 }</code></pre>
   </div>
 </section>
-
+-->
 
 <footer class="footer">
   <div class="container">
