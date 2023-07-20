@@ -278,16 +278,18 @@ coordinate input processed by the NeRF MLP
         <h2 class="title is-3">Zero-Shot Generalization</h2>
         <div class="content has-text-justified">
           <p>
-Zero Shot In-Distribution Generalization. Faded objects are the results of HyperFields on prompts used during
-training, and opaque objects are results on unseen prompts. Note that all results are obtained in a single feedforward manner
-(i.e. no test time optimization). All types of shapes and colors are seen during training, however during inference we present
-novel unseen combinations (e.g. “red chair” is unseen during training but the model trains on the color “red” and the shape
-“chair”.
+Given a set of colour styles and shapes, our method is able to train on a subset of the colour-shape combinations, and during inference predict the unseen colour-shape scenes zero-shot, without any test time optimization. We call this in-distribution generalization as both the shape and the color are seen during training but the inference time scenes (opaque scenes in the figure below) are still novel because the combination of color and shape is unseen during training. Example: “Orange toaster” is a prompt the model has not scene during training, however it has seen the color “orange” and the shape “toaster” its training set. Hence “orange toaster” is an in-distribution novel scene.
           </p>
         </div>
         <div class="overview-image">
         <img src="./static/images/figures/faded_generalization.jpg" type="image/jpg">
         </div>
+        <div class="content has-text-justified">
+          <p>
+Faded objects are the results of HyperFields on prompts used during training, and opaque objects are results on unseen prompts. Note that all results are obtained in a single feedforward manner
+(i.e. no test time optimization). All types of shapes and colors are seen during training, however during inference we present novel unseen combinations.
+        </p>
+
 
       </div>
     </div>
