@@ -106,7 +106,7 @@
 
 
 .odd-image {
-  position: relative;
+  position: absolute;
   width: 100%;
   height: auto;
   /* height: 100%;
