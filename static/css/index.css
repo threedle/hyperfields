@@ -107,12 +107,11 @@
 
 .odd-image {
   position: relative;
-  width: 150%;
+  width: 100%;
   height: auto;
   /* height: 100%;
  *  *   padding-bottom: 20%; */
   overflow: hidden;
-  float:left;
   border-radius: 10px !important;
 }
 
