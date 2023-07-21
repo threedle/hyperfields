@@ -252,14 +252,19 @@ with just a few gradient steps (third column).
         </div>
         <div class="content has-text-justified">
           <p>
+          
           The input to the HyperFields system is a text prompt, which is encoded into latents
 by a pre-trained text encoder, which in our case is a frozen BERT model. The text latents are passed to a Transformer
-module, which outputs a conditioning token (CT). This conditioning token (which supplies scene information) is used to
-condition each of the MLP modules in the hypernetwork. The first hypernetwork MLP (on the left) predicts the weights W1
+module, which outputs a conditioning token (CT). 
+         </p>
+         <p>
+         This conditioning token (which supplies scene information) is used to condition each of the MLP modules in the hypernetwork. The first hypernetwork MLP (on the left) predicts the weights W1
 of the first layer of the NeRF MLP, which is the standard NeRF neural architecture that actually encodes and synthesizes
 the desired scene. The second hypernetwork MLP then takes as input both the CT as well as a1, which are the activations
-from the first predicted NeRF MLP layer, and predicts the weights W2 of the second NeRF MLP. The subsequence scene-
-conditioned hypernetwork MLPs follow the same pattern, taking the activations ai−1 from the previous predicted NeRF
+from the first predicted NeRF MLP layer, and predicts the weights W2 of the second NeRF MLP. 
+         </p>
+         <p>
+The subsequence scene-conditioned hypernetwork MLPs follow the same pattern, taking the activations ai−1 from the previous predicted NeRF
 MLP layer as input to generate weights Wi for the ith layer of the NeRF MLP. We also introduce stop gradients (SG)
 during hypernetwork training so that gradients are not backpropoagated through the activations of the predicted NeRF layers.
 The dynamic hypernetwork system allows our model to dynamically update for a given scene input (text prompt) and 3D
