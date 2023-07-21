@@ -278,7 +278,7 @@ coordinate input processed by the NeRF MLP
         <h2 class="title is-3">Zero-Shot In-Distribution Generalization</h2>
         <div class="content has-text-justified">
           <p>
-Our method is able to train on a subset of the colour-shape combinations, and during inference predict the unseen colour-shape scenes zero-shot, without any test time optimization. We call this in-distribution generalization as both the shape and the color are seen during training but the inference time scenes (opaque scenes in the figure below) are still novel because the combination of color and shape is unseen during training. Example: “Orange toaster” is a prompt the model has not scene during training, however it has seen the color “orange” and the shape “toaster” its training set. Hence “orange toaster” is an in-distribution novel scene.
+Given a set of colour styles and shapes, our method is able to train on a subset of the colour-shape combinations, and during inference predict the unseen colour-shape scenes zero-shot, without any test time optimization. We call this in-distribution generalization as both the shape and the color are seen during training but the inference time scenes (opaque scenes in the figure below) are still novel because the combination of color and shape is unseen during training. Example: “Orange toaster” is a prompt the model has not scene during training, however it has seen the color “orange” and the shape “toaster” its training set. Hence “orange toaster” is an in-distribution novel scene.
           </p>
         </div>
         <div class="overview-image">
@@ -290,10 +290,30 @@ Faded objects are the results of HyperFields on prompts used during training, an
 (i.e. no test time optimization). All types of shapes and colors are seen during training, however during inference we present novel unseen combinations.
         </p>
 
+
+      </div>
+    </div>
+    <!--/ Semantic Highlighting. -->
+
+    <!-- Applications. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <hr class="divider" />
+        <h2 class="title is-3">Faster Generation of scenes with  unseen Geometry and/or Attribute</h2>
+        <div class="content has-text-justified">
+          <p>
+          Our method generates scenes that capture the given out-of-distribution prompt in at most 2k steps (row 1), whereas baseline models are far from  the desired scene at the same number of steps (row 2 and 4). When allowed to fine-tune for longer (row 3 and 5) the quality of baseline’s generations are worse or at best comparable to our model’s generations despite our model being fine tuned for significantly fewer steps. Demonstrating our model’s ability to adapt better to unseen shapes and attributes.
+
+          </p>
+        </div>        
+        <div class="odd-image">
+          <img src="./static/images/figures/ood_result.png" type="image/png">
+        </div>
       </div>
     </div>
     </div>
-    <!--/ Semantic Highlighting. -->
+    <!--/ Applications. -->
+
 
 <!--
 <section class="section" id="BibTeX">
