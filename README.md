@@ -80,8 +80,27 @@ python main.py \
 ```
 ## Downloading checkpoints
 We have a google drive with all the teacher networks and the student network that is capable of zero-shot generalization
+```
+#To load and evaluate pre-trained checkpoint, in this case we load the pot_teacher model.
+python main.py \
+--text ./txt/base_color_pot_v3.txt \
+--iters 100000 -O --ckpt latest \
+--project_name 10_pack -O
+--workspace hamburger_yarn \
+--num_layers 6  --hidden_dim 64 \
+--lr 0.0001 --WN None --init ortho \
+--exp_name pot_teacher  \
+--albedo_iters 6000000 \
+--conditioning_model bert \
+--conditioning_dim 64  \
+--eval_interval 1  \
+--arch detach_dynamic_hyper_transformer \
+--meta_batch_size 3 \
+--train_list 0 1 2 3 4 \
+--test_list 0 \
+```
 
-To load a checkpoint, simply change --ckpt scratch to --ckpt latest and exp_name bowl_teacher to exp_name pot_teacher, if you want to load the checkpoint for pot teacher network.
+
 
 ### Note on Reproducibility
 Due to the sensitivity of our SDS optimization and some non determinism, results can vary across different runs even when fully seeded. If the result of the optimization does not match the expected result, try re-running the optimization. Typically within 3 runs the desired results should be obtained.
