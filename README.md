@@ -55,7 +55,7 @@ python main.py \
 --test_list 0 \
 ```
 
-## Training the student network for zero-shot generalization
+## Training the student HyperFields network
 ```
 # Training student network learns all the shape color pairs in the training set and performs zero-shot generalization
 python main.py \ 
