@@ -15,7 +15,8 @@ Abstract: We introduce HyperFields, a method for generating text-conditioned NeR
 ![teaser](./static/images/figures/HyperFields_teaser_RLfix.jpg)
 
 
-## installation
+## Installation
+
 
 ```
 pip install -r requirements.txt
@@ -25,5 +26,20 @@ bash scripts/install_ext.sh
 pip install ./raymarching
 ```
 Note: We mainly build on [stable-dreamfusion](https://github.com/ashawkey/stable-dreamfusion) repo so our installation is same as theirs.
+
+#### System Requirements
+- Python 3.10
+- CUDA 11.7
+- 48 GB GPU
+
+
+## Training the teacher networks
+The instructions to train teachers for various shapes are in scripts.txt, here we just go over bowls
+```
+# Training teacher for bowls
+python main.py --text ./txt/base_color_bowl_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name bowl_teacher  --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+'''
+
+'text' text file all the bowl prompts we use to train our model
 
 
