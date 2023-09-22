@@ -78,7 +78,7 @@ python main.py \
 --not_diff_loss \
 --teacher_size 5
 ```
-## Downloading checkpoints
+## Downloading and loading checkpoints
 We have a google drive with all the teacher networks and the student network that is capable of zero-shot generalization
 ```
 #To load and evaluate pre-trained checkpoint, in this case we load the pot_teacher model.
