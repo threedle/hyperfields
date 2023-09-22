@@ -15,5 +15,15 @@ Abstract: We introduce HyperFields, a method for generating text-conditioned NeR
 ![teaser](./static/images/figures/HyperFields_teaser_RLfix.jpg)
 
 
+## installation
+
+```
+pip install -r requirements.txt
+
+bash scripts/install_ext.sh
+
+pip install ./raymarching
+```
+Note: We mainly build on [stable-dreamfusion](https://github.com/ashawkey/stable-dreamfusion) repo so our installation is same as theirs.
 
 
