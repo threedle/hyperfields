@@ -53,8 +53,7 @@ python main.py \
 --meta_batch_size 3 \
 --train_list 0 1 2 3 4 \ 
 --test_list 0 \
-'''
+```
 
-`text`  text file all the bowl prompts we use to train our model
 
 
