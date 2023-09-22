@@ -86,8 +86,11 @@ To load a checkpoint, simply change --ckpt scratch to --ckpt latest and exp_name
 ### Note on Reproducibility
 Due to the sensitivity of our SDS optimization and some non determinism, results can vary across different runs even when fully seeded. If the result of the optimization does not match the expected result, try re-running the optimization. Typically within 3 runs the desired results should be obtained.
 
-##Acknowledgements
+## Acknowledgements
 We build upon [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion) and [Trans-INR](https://github.com/yinboc/trans-inr). We thank them for their contribution.
+
+## Citation
+
 
 
 
