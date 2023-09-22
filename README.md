@@ -55,6 +55,6 @@ python main.py \
 --test_list 0 \
 '''
 
-`text` text file all the bowl prompts we use to train our model
+`text`  text file all the bowl prompts we use to train our model
 
 
