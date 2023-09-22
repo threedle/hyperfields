@@ -1,0 +1,35 @@
+#chairs
+python main.py --text ./txt/base_color_chair_v3.txt  --iters 100000 -O --ckpt latest --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name chair_teacher  --skip --albedo_iters 6000000 --conditioning_model bert  --conditioning_dim 64 --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#pots
+python main.py --text ./txt/base_color_pot_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho --exp_name pot_teacher  --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#bench
+python main.py --text txt/base_color_bench_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name bench_teacher  --albedo_iters 6000000 --conditioning_model bert  --conditioning_dim 64 --eval_interval 10 --arch detach_dynamic_hyper_transformer --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+
+#stool
+python main.py --text ./txt/base_color_stool_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name stool_teacher   --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10 --arch detach_dynamic_hyper_transformer --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#bowl
+python main.py --text ./txt/base_color_bowl_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name bowl_teacher  --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#vase
+python main.py --text ./txt/base_color_vase_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name vase_teacher  --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#skateboard
+python main.py --text ./txt/base_color_skateboard_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name skateboard_teacher --albedo_iters 6000000 --conditioning_model bert  --conditioning_dim 64 --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#knife
+python main.py --text ./txt/base_color_knife_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name knife_teacher  --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
+
+
+#plate
+python main.py --text ./txt/base_color_plate_v3.txt  --iters 100000 -O --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name plate_teacher  --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_dim 64  --eval_interval 10  --arch detach_dynamic_hyper_transformer  --meta_batch_size 3 --train_list 0 1 2 3 4 --test_list 0
