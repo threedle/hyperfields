@@ -48,16 +48,35 @@ python main.py \
 --albedo_iters 6000000 \ 
 --conditioning_model bert \
 --conditioning_dim 64  \
---eval_interval 10  \
+--eval_interval 100  \
 --arch detach_dynamic_hyper_transformer \ 
 --meta_batch_size 3 \
 --train_list 0 1 2 3 4 \ 
 --test_list 0 \
 ```
 
-# Training the student network for zero-shot generalization
+## Training the student network for zero-shot generalization
 ```
-python main.py --text all_obj.txt --iters 100000  --ckpt scratch --project_name 10_pack -O --workspace hamburger_yarn --num_layers 6 --hidden_dim 64 --lr 0.0001 --WN None --init ortho  --exp_name test_simple_v2 --skip --albedo_iters 6000000 --conditioning_model bert --conditioning_mode cat --conditioning_dim 64 --pos_enc_ins 1 --arch hyper_transformer --eval_interval 50 --multiple_conditioning_transformers  --arch detach_dynamic_hyper_transformer --dummy --dummy --normalization post_ada --meta_batch_size 2 --load_teachers teacher_all_obj.txt --lambda_stable_diff 0 --dist_image_loss --not_diff_loss --teacher_size 40
+# Training student network learns all the shape color pairs in the training set and performs zero-shot generalization
+python main.py \ 
+--text ./txt/all_obj.txt \
+--iters 100000 --ckpt scratch \
+--project_name 10_pack -O \
+--workspace hamburger_yarn \ 
+--num_layers 6 --hidden_dim 64 \ 
+--lr 0.0001 --WN None --init ortho \  
+--exp_name student  \
+--albedo_iters 6000000 
+--conditioning_model bert \  
+--conditioning_dim 64 \ 
+--eval_interval 50 \ 
+--arch detach_dynamic_hyper_transformer \
+--meta_batch_size 2 
+--load_teachers teacher_all_obj.txt \
+--lambda_stable_diff 0 \
+--dist_image_loss \
+--not_diff_loss \
+--teacher_size 5
 ```
 
 
