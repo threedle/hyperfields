@@ -25,7 +25,7 @@ bash scripts/install_ext.sh
 
 pip install ./raymarching
 ```
-Note: We mainly build on [stable-dreamfusion](https://github.com/ashawkey/stable-dreamfusion) repo so our installation is same as theirs.
+Note: We mainly build on [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion) repo so our installation is same as theirs.
 
 #### System Requirements
 - Python 3.10
@@ -78,7 +78,16 @@ python main.py \
 --not_diff_loss \
 --teacher_size 5
 ```
+## Downloading checkpoints
+We have a google drive with all the teacher networks and the student network that is capable of zero-shot generalization
 
+To load a checkpoint, simply change --ckpt scratch to --ckpt latest and exp_name bowl_teacher to exp_name pot_teacher, if you want to load the checkpoint for pot teacher network.
+
+### Note on Reproducibility
+Due to the sensitivity of our SDS optimization and some non determinism, results can vary across different runs even when fully seeded. If the result of the optimization does not match the expected result, try re-running the optimization. Typically within 3 runs the desired results should be obtained.
+
+##Acknowledgements
+We build upon [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion) and [Trans-INR](https://github.com/yinboc/trans-inr). We thank them for their contribution.
 
 
 
