@@ -36,68 +36,67 @@ Note: We mainly build on [Stable-Dreamfusion](https://github.com/ashawkey/stable
 ## Training the teacher networks
 The instructions to train teachers for various shapes are in scripts.txt, here we just go over bowls
 ```
-# Training teacher for bowls: Train a single network to learn several colored bowls
-python main.py \
---text ./txt/base_color_bowl_v3.txt \
+python main.py \ 
+--text prompts/bowl.txt \
 --iters 100000 -O --ckpt scratch \
---project_name 10_pack -O 
+ --project_name 10_pack -O \
 --workspace hamburger_yarn \ 
---num_layers 6  --hidden_dim 64 \
---lr 0.0001 --WN None --init ortho \
---exp_name bowl_teacher  \ 
---albedo_iters 6000000 \ 
---conditioning_model bert \
---conditioning_dim 64  \
---eval_interval 100  \
---arch detach_dynamic_hyper_transformer \ 
+--num_layers 6 --hidden_dim 64 \ 
+--lr 0.0001 --WN None --init ortho \ 
+--exp_name bowl_teacher --skip \
+--albedo_iters 6000000 \
+--conditioning_model bert \ 
+--eval_interval 10 \ 
+--arch detach_dynamic_hyper_transformer \
 --meta_batch_size 3 \
---train_list 0 1 2 3 4 \ 
---test_list 0 \
+--train_list 0 1 2 3 4 --test_list 0 
+
 ```
 
 ## Training the student HyperFields network
 ```
 # Training student network learns all the shape color pairs in the training set and performs zero-shot generalization
-python main.py \ 
---text ./txt/all_obj.txt \
---iters 100000 --ckpt scratch \
+#teacher_list.txt contains the path of the teacher networks
+python main.py \
+--text prompts/all_train_obj.txt \
+--iters 100000  --ckpt scratch \
 --project_name 10_pack -O \
---workspace hamburger_yarn \ 
---num_layers 6 --hidden_dim 64 \ 
+--workspace hamburger_yarn 
+--num_layers 6 --hidden_dim 64 \
 --lr 0.0001 --WN None --init ortho \  
---exp_name student  \
---albedo_iters 6000000 
---conditioning_model bert \  
---conditioning_dim 64 \ 
---eval_interval 50 \ 
---arch detach_dynamic_hyper_transformer \
---meta_batch_size 2 
---load_teachers teacher_all_obj.txt \
+--exp_name all_student --skip \
+--albedo_iters 6000000 \
+--conditioning_model bert \
+--eval_interval 50 \
+--arch detach_dynamic_hyper_transformer \ 
+--meta_batch_size 2 \ 
+--load_teachers teacher_list.txt 
 --lambda_stable_diff 0 \
---dist_image_loss \
---not_diff_loss \
---teacher_size 5
+--dist_image_loss --not_diff_loss \
+--teacher_size 5 --test_list 0 \
+--train_list  0 1 2 3 4  5 6 7 8 9 10 11 12 13 14 15 16 17 18  20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49
+
 ```
 ## Downloading and loading checkpoints
 We have a google drive with all the teacher networks and the student network that is capable of zero-shot generalization
 ```
 #To load and evaluate pre-trained checkpoint, in this case we load the pot_teacher model.
-python main.py \
---text ./txt/base_color_pot_v3.txt \
---iters 100000 -O --ckpt latest \
---project_name 10_pack -O
+python main_eval.py \ 
+--text prompts/test_final.txt \
+--iters 100000  --ckpt latest \
+--project_name 10_pack -O \
 --workspace hamburger_yarn \
---num_layers 6  --hidden_dim 64 \
---lr 0.0001 --WN None --init ortho \
---exp_name pot_teacher  \
+--num_layers 6 --hidden_dim 64 
+--lr 0.0001 --WN None --init ortho \ 
+--exp_name all_student --skip \
 --albedo_iters 6000000 \
---conditioning_model bert \
---conditioning_dim 64  \
---eval_interval 1  \
+--conditioning_model bert --eval_interval 1 \
 --arch detach_dynamic_hyper_transformer \
---meta_batch_size 3 \
---train_list 0 1 2 3 4 \
---test_list 0 \
+--meta_batch_size 2 \
+--load_teachers teacher_list.txt \
+--lambda_stable_diff 0 \ --dist_image_loss \
+--not_diff_loss --teacher_size 5 --train_list 0  \
+--test_list  0 1 2 3 4  5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 
 ```
 
 
