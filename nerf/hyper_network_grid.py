@@ -17,6 +17,7 @@ from torch.nn.utils import weight_norm as wn
 import math
 
 from .transformer import TransformerEncoder
+#from .hyper_transformer import TransInr
 from .dynamic_hyper import DyTransInr
 from .layers import batched_linear_mm
 import glob
@@ -60,48 +61,59 @@ class MLP(nn.Module):
         net = []
 
 
-        if self.nerf_conditioning:
+        if self.hyper_flag:
+            print('invoking transformer hypernet')
             self.transformer_encoder = TransformerEncoder(256, 6,12,16,64, condition_trans = opt.condition_trans)
-            self.hyper_transform = nn.Linear(768,256)
+            if self.opt.conditioning_model == 'T5':
+                self.hyper_transform = nn.Linear(512,64)
+            elif self.opt.conditioning_model == 'bert':
+                self.hyper_transform = nn.Linear(768,256)
             nn.init.orthogonal_(self.hyper_transform.weight)
 
             transform_dim = opt.conditioning_dim 
 
-            #if opt.multiple_conditioning_transformers:
-            self.transform_list = nn.ModuleList()
+            
+            self.proj_ct_list = nn.ModuleList()
             for i in range(num_layers):
-                self.transform_list.append(nn.Sequential(wn(nn.Linear(768, self.dim_hidden *2)), nn.ReLU(), wn(nn.Linear(self.dim_hidden*2, transform_dim)))) 
-                self.apply_init(model = self.transform_list[i], init='ortho')
+                if self.opt.conditioning_model == 'T5':
+                    self.proj_ct_list.append(nn.Sequential(wn(nn.Linear(512, self.dim_hidden *2)), nn.ReLU(), wn(nn.Linear(self.dim_hidden*2, transform_dim))))
+                    self.apply_init(model = self.proj_ct_list[i], init='ortho')
+                elif self.opt.conditioning_model  == 'bert':
+                    self.proj_ct_list.append(nn.Sequential(wn(nn.Linear(768, self.dim_hidden *2)), nn.ReLU(), wn(nn.Linear(self.dim_hidden*2, transform_dim)))) 
+                    self.apply_init(model = self.proj_ct_list[i], init='ortho')
 
 
-            #Creating a dummy MLP to fill its weights up
-            for l in range(num_layers):
-                inp_dim_aug_dim = 0 
-                if l!=0:
-                         
-                    inp_dim_aug_dim = inp_dim_aug_dim + 32 # include positional conditioning 
 
-                if  l<=4:
-                    inp_dim_aug_dim = inp_dim_aug_dim + transform_dim #include scene conditioning
+        for l in range(num_layers):
+            inp_dim_aug_dim = 0 
+            if opt is not None:
+                inp_dim_aug_dim = 0
+                if  l!=0:
+                    inp_dim_aug_dim = inp_dim_aug_dim + 32
+                            
+                if self.nerf_conditioning:
+                    if self.opt.conditioning_mode == 'cat' and (l==0 or l ==1 or l ==2 or l==3 or l==4):
+                        inp_dim_aug_dim = inp_dim_aug_dim + transform_dim
                                 
-                net.append(nn.Linear(self.dim_in + inp_dim_aug_dim if l == 0 else self.dim_hidden + inp_dim_aug_dim, self.dim_out if l == num_layers - 1 else self.dim_hidden,bias=bias))
+                net.append(wn(nn.Linear(self.dim_in + inp_dim_aug_dim if l == 0 else self.dim_hidden + inp_dim_aug_dim, self.dim_out if l == num_layers - 1 else self.dim_hidden,bias=bias)))
+            else:
+                net.append(nn.Linear(self.dim_in if l == 0 else self.dim_hidden, self.dim_out if l == num_layers - 1 else self.dim_hidden,bias=bias))
 
+        #self.hyper_flag = False
+        if self.hyper_flag:
             param_shapes= {}
             for idx, layer in enumerate(net):
                 param_shapes['layer_{}'.format(idx)] = layer.weight.shape
            
             self.hyper_transformer = DyTransInr(param_shapes.items(), self.dim_hidden, self.transformer_encoder)
         else:
-            for l in range(num_layers):
-                net.append(nn.Linear(self.dim_in if l == 0 else self.dim_hidden, self.dim_out if l == num_layers - 1 else self.dim_hidden,bias=bias))
-
             self.net = nn.ModuleList(net)
             if self.init is not None:
-                set_trace()
                 self.apply_init()
 
     def load_teacher(self,opt, checkpoint=None, model_only=True, teacher_id = None):
-        #if teacher_id is None:
+        if teacher_id is None:
+            set_trace()
 
         if checkpoint is None:
             checkpoint_list = sorted(glob.glob(f'{self.ckpt_path}/*.pth'))
@@ -179,16 +191,32 @@ class MLP(nn.Module):
         for ind, layer_ in enumerate(model):
             if type(layer_) == type(nn.ReLU()):
                 continue
+            if init == 'extend_ortho':
+                if ind >=3 and ind < self.num_layers -1:
+                    nn.init.orthogonal_(layer_.weight)
+                    if self.opt.WN:
+                        layer_.weight_g.data.fill_(1.0)
             elif init == 'ortho':
                 if ind <self.num_layers -1:
                     nn.init.orthogonal_(layer_.weight)
                     if self.opt.WN :
                         if not ('not_first' in self.opt.WN and ind ==0): 
                             layer_.weight_g.data.fill_(1.0) 
-
+            elif init == 'extend_eye':
+                if ind >=3 and ind < self.num_layers -1:
+                    nn.init.eye_(layer_.weight)
+                    if self.opt.WN: 
+                        layer_.weight_g.data.fill_(1.0) 
+            elif init == 'eye':
+                if ind < self.num_layers -1:
+                    nn.init.eye_(layer_.weight)
+                    if self.opt.WN: 
+                        if not ('not_first' in self.opt.WN and ind ==0):
+                            layer_.weight_g.data.fill_(1.0) 
             else:
                 print('maintain default')
             #print('checking')
+        #set_trace()
     def adaptive_norm(self,x,condition_vec):
         style_mean = condition_vec.mean()
         style_std  = condition_vec.std()
@@ -203,59 +231,58 @@ class MLP(nn.Module):
     def forward(self, x, conditioning_vector = None,epoch = None):
         #print(x.device)i
         x = x/x.norm(dim=1).unsqueeze(dim=1) #* 10
-
         pos_enc = x
-
         if conditioning_vector is not None:
             scene_id = self.scene_id
         #if epoch ==11:
-        if self.nerf_conditioning:# and conditioning_vector is not None:
+        if self.hyper_flag:# and conditioning_vector is not None:
             processed_tokens = self.hyper_transform(conditioning_vector[scene_id]['input_tokens'].squeeze(0))
-            processed_scene_vec = self.hyper_transformer.get_scene_vec(processed_tokens) 
+            if 'dynamic' not in self.opt.arch:
+                params = self.hyper_transformer(processed_tokens)
+            else:
+                processed_scene_vec = self.hyper_transformer.get_scene_vec(processed_tokens) 
          
             #self.set_params(params)
         hyper_inp = None
         for l in range(self.num_layers):
-            # skip options                
-            #if l % 2 ==1 and l>1 and self.opt is not None and self.opt.skip:
-            #    x = x + x_skip 
-
-            #Pre-Normalization
             # conditioning options
-            if self.nerf_conditioning  and l<=4 :
+            if self.nerf_conditioning  and ( l==0 or l ==1 or l ==2 or l ==3 or l ==4  ):
 
                 #x = torch.cat((x+self.transform(conditioning_vector['input_vec']).repeat(x.shape[0],1)), dim=1)
-                #if self.opt.multiple_conditioning_transformers:
-                transformer = self.transform_list[l]
-                proj_cond_vec = transformer(conditioning_vector[scene_id]['input_vec'])
-
+                projection = self.proj_ct_list[l]
+                #set_trace()
+                proj_cond_vec = projection(conditioning_vector[scene_id]['input_vec'])
+                    
                 proj_cond_vec = torch.nn.functional.layer_norm(proj_cond_vec, (proj_cond_vec.shape[1],))
                 proj_cond_vec = proj_cond_vec /proj_cond_vec.norm().detach()
-                x = torch.cat((x,proj_cond_vec.repeat(x.shape[0],1)), dim=1)
-
-
-            if self.nerf_conditioning and l!=0:
-                x = torch.cat((x,pos_enc), dim=1)
-
-            if self.nerf_conditioning:
-                # forward pass
-                #call MLPs to generate weights of the subsquent layer
-                #processed_scene_vec is the conditioning token
-                #l is layer id, used to index the correct MLP
-                #hyper_inp is the activation of the previous layer used as input to the current layer
-                params = self.hyper_transformer.get_params(processed_scene_vec, l, hyper_inp) #call MLPs to generate weights of the subsquent layer
-                x = F.linear(x,params['layer_{}'.format(l)])#batched_linear_mm(x, params['layer_{}'.format(l)])i
-                if 'detach'  in self.opt.arch:
-                    hyper_inp = x.detach()
+                if  l==0 or self.opt.conditioning_mode == 'cat'  :
+                    x = torch.cat((x,proj_cond_vec.repeat(x.shape[0],1)), dim=1)
                 else:
-                    hyper_inp = x
+                    
+                    x = x +  proj_cond_vec.repeat(x.shape[0],1)    #self.transform(conditioning_vector['input_vec']).repeat(x.shape[0],1)
+                    
+            if self.opt is not None  and l!=0:
+                x = torch.cat((x,pos_enc), dim=1)
+            # forward pass
+            if self.hyper_flag:
+                if 'dynamic' in self.opt.arch:
+                    params = self.hyper_transformer.get_params(processed_scene_vec, l, hyper_inp)
+                    x = F.linear(x,params['layer_{}'.format(l)])#batched_linear_mm(x, params['layer_{}'.format(l)])i
+                    if 'detach'  in self.opt.arch:
+                        hyper_inp = x.detach()
+                    else:
+                        hyper_inp = x
+                else:
+                    x = F.linear(x,params['layer_{}'.format(l)])
             else:
                 x = self.net[l](x)
 
             #Post Normalization
-            if self.opt is not None and l != self.num_layers - 1 and self.nerf_conditioning: 
+            if self.opt is not None and l != self.num_layers - 1  and self.nerf_conditioning: 
                 x = self.adaptive_norm(x,conditioning_vector[scene_id]['input_vec'])
 
+            #if self.opt is not None and l != self.num_layers - 1 and self.opt.normalization == "post_LN":
+            #    x = self.layer_norm_list[l](x) 
             # skip options
             if l % 2 ==0 and l>1 and self.opt is not None and self.opt.skip and l != self.num_layers-1:
                 x = x + x_skip
@@ -267,7 +294,6 @@ class MLP(nn.Module):
             # store for skip 
             if l %2 == 0:
                 x_skip = x
-        
         return x
 
 
@@ -385,12 +411,12 @@ class HyperTransNeRFNetwork(NeRFRenderer):
 
 
         if 'model' not in checkpoint_dict:
+            set_trace()
             self.load_state_dict(checkpoint_dict)
             self.log("[INFO] loaded model.")
             return
 
         missing_keys, unexpected_keys = self.load_state_dict(checkpoint_dict['model_renamed'], strict=False)
-        
         print("[INFO] loaded teacher model.")
         if len(missing_keys) > 0:
             set_trace()

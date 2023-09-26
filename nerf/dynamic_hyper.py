@@ -70,7 +70,7 @@ class DyTransInr(nn.Module):
 
     def get_params(self,cond_vec, index, prev_act = None):
         if prev_act is not None:
-            prev_act = prev_act.mean(dim=0).unsqueeze(0) # mean over the rays and points sampled, its ok to do this as we want to condition the MLP on the basis of the scene 
+            prev_act = prev_act.mean(dim=0).unsqueeze(0) 
             inp = torch.cat((cond_vec,prev_act),dim=1)
         else:
             inp = cond_vec
@@ -100,7 +100,6 @@ class DyTransInr(nn.Module):
          
     def forward(self, data):
         #TODO change tokens
-        set_trace()
         dtokens = data #self.tokenizer(data)
         B = 1#dtokens.shape[0]
         dtokens = einops.repeat(dtokens, 'n d -> b n d', b=B)

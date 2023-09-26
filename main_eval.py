@@ -2,7 +2,7 @@ import torch
 import argparse
 
 from nerf.provider import NeRFDataset
-from nerf.utils import *
+from nerf.utils_eval import * 
 from optimizer import Shampoo
 import wandb
 from pdb import set_trace
@@ -129,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_list', nargs='+', type = int, default = None)
     parser.add_argument('--test_list', nargs='+', type = int, default = None)
     parser.add_argument('--pre_trained_path', type=str, default=None)
+    parser.add_argument('--mode', type=str, default='train', help="run in train or eval mdoe")
     # parser.add_argument('--radius', type=float, default=3, help="default GUI camera radius from center")
     # parser.add_argument('--fovy', type=float, default=60, help="default GUI camera fovy")
     # parser.add_argument('--light_theta', type=float, default=60, help="default GUI light direction in [0, 180], corresponding to elevation [90, -90]")
@@ -278,8 +279,7 @@ if __name__ == '__main__':
         max_epoch = np.ceil(opt.iters / len(train_loader)).astype(np.int32)
         test_loader = NeRFDataset(opt, device=device, type='test', H=opt.H, W=opt.W, size=100).dataloader()
 
-        trainer.train(train_loader, valid_loader,test_loader, max_epoch)
-
+        trainer.get_results(train_loader, valid_loader,test_loader, max_epoch)
         # also test
         trainer.test(test_loader)
 

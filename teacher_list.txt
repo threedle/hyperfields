@@ -1,0 +1,10 @@
+outputs/10_pack_chair_teacher/
+outputs/10_pack_pot_teacher/
+outputs/10_pack_toaster_teacher
+outputs/10_pack_bench_teacher
+outputs/10_pack_stool_teacher
+outputs/10_pack_bowl_teacher
+outputs/10_pack_vase_teacher
+outputs/10_pack_skateboard_teacher
+outputs/10_pack_knife_teacher
+outputs/10_pack_plate_teacher

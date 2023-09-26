@@ -333,149 +333,6 @@ class Trainer(object):
             if self.log_ptr: 
                 print(*args, file=self.log_ptr)
                 self.log_ptr.flush() # write immediately to file
-
-    ### ------------------------------	
-
-    def train_step(self, data,scene_id):
-        loss = 0
-        #cur_mem = torch.cuda.memory_allocated() * 1e-9
-        #max_mem = torch.cuda.max_memory_allocated() * 1e-9
-        #print('\n  {}'.format(cur_mem/max_mem))
-        #print(dict(self.model.module.text_model.named_parameters())['decoder.block.5.layer.0.SelfAttention.v.weight'].norm())
-        #print(dict(self.model.module.sigma_net.named_parameters())['module.hyper_transformer.wtoken_postfc.layer_4.0.weight'].norm())        
-        #print(dict(self.model.module.text_model.named_parameters())['encoder.layer.10.attention.self.key.weight'].norm())
-        self.model.module.scene_id = scene_id
-        simple_prompt = False
-        simple_list = []
-        #if scene_id < 80:
-        #    simple_prompt = True
-
-
-        if self.opt.load_teachers:
-            self.model.module.teacher_models = self.model.teacher_models
-
-            for model_j in self.model.module.teacher_models:
-                model_j.module.scene_id = scene_id
-
-        #check = self.model.module.get_conditioning_vec(index= scene_id)
-        #if scene_id == 0:
-        #    set_trace()
-        #    print(check['input_vec'])
-        #self.model.module.conditioning_vector[scene_id] = check
-        if self.opt.mem:
-            torch.cuda.empty_cache()
-
-        rays_o = data['rays_o'] # [B, N, 3]
-        rays_d = data['rays_d'] # [B, N, 3]
-
-        B, N = rays_o.shape[:2]
-        H, W = data['H'], data['W']
-
-        # TODO: shading is not working right now...
-        if self.global_step < self.opt.albedo_iters:
-            shading = 'albedo'
-            ambient_ratio = 1.0
-        else: 
-            rand = random.random()
-            if rand > 0.8: 
-                shading = 'albedo'
-                ambient_ratio = 1.0
-            # elif rand > 0.4: 
-            #     shading = 'textureless'
-            #     ambient_ratio = 0.1
-            else: 
-                shading = 'lambertian'
-                ambient_ratio = 0.1
-
-        # _t = time.time()
-       
-        bg_color = torch.rand((B * N, 3), device=rays_o.device) # pixel-wise random
-        if self.opt.mem:
-            torch.cuda.empty_cache()
-            gc.collect()
-        outputs = self.model.module.render(rays_o, rays_d, staged=False, perturb=True, bg_color=bg_color, ambient_ratio=ambient_ratio, shading=shading, force_all_rays=True, **vars(self.opt))
-        if self.opt.mem:
-            torch.cuda.empty_cache()
-            gc.collect() 
-        pred_rgb = outputs['image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous() # [1, 3, H, W]
-        # torch.cuda.synchronize(); print(f'[TIME] nerf render {time.time() - _t:.4f}s')
-
-        
-        
-        '''
-        if self.opt.load_teachers is not None:
-            #print(scene_id)
-            current_teacher = self.model.teacher_models[scene_id]
-            #current_teacher.eval()
-            set_trace()
-            with torch.no_grad():
-                teacher_outputs = current_teacher.module.render(rays_o, rays_d, staged=False, perturb=True, bg_color=bg_color, ambient_ratio=ambient_ratio, shading=shading, force_all_rays=True, **vars(self.opt))
-                teacher_pred_rgb = teacher_outputs['image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous() # [1, 3, H, W]
-        '''
-        if self.opt.dist_image_loss and not simple_prompt:
-            '''
-            if scene_id == 0:
-                 utils.save_image(outputs['teacher_image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous(), 'scene_3/t{}.png'.format(self.iter_local))
-            else:
-                 utils.save_image(outputs['teacher_image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous(), 'scene_4/t{}.png'.format(self.iter_local))
-            '''
-            self.iter_local= self.iter_local +1
-
-            loss =  self.opt.lambda_teacher_image * ((pred_rgb - outputs['teacher_image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous())**2).mean()
-        if self.opt.dist_sigma_rgb_loss:
-            set_trace()
-            loss  = loss + self.opt.lambda_rgb* ((outputs['rbgs'] - outputs['teacher_rbgs'] ) **2).mean()
-            loss  =  loss + self.opt.lambda_sigma *((outputs['sigmas'] - outputs['teacher_sigmas'] )**2).mean()
-
-        if self.opt.dist_depth_loss or simple_prompt:
-            loss = loss +  self.opt.lambda_depth* ((outputs['depth'] - outputs['teacher_depth'])**2).mean()
-             
-
-        # print(shading)
-        # torch_vis_2d(pred_rgb[0])
-        # text embeddings
-        if self.opt.dir_text:
-            dirs = data['dir'] # [B,]
-            text_z = self.text_z[scene_id][dirs]
-        else:
-            text_z = self.text_z[scene_id]
-        
-        # encode pred_rgb to latents
-        # _t = time.time()
-        if not self.opt.not_diff_loss:
-            loss = loss+ self.opt.lambda_stable_diff* self.guidance.train_step(text_z, pred_rgb)
-
-        #if self.opt.load_teachers is not None:
-        #    loss = self.opt.lambda_stable_diff*loss +  self.opt.lambda_teacher*teacher_loss + 
-       
-        #if self.wandb_obj is not None:
-        #    self.wandb_obj.log({'guidance_loss':loss.item()})
-        # torch.cuda.synchronize(); print(f'[TIME] total guiding {time.time() - _t:.4f}s')
-
-        # occupancy loss
-        pred_ws = outputs['weights_sum'].reshape(B, 1, H, W)
-
-        if self.opt.lambda_opacity > 0:
-            loss_opacity = (pred_ws ** 2).mean()
-            if self.wandb_obj is not None:
-                self.wandb_obj.log({'opacity_loss':loss_opacity.item()})
-            loss = loss + self.opt.lambda_opacity * loss_opacity
-
-        if self.opt.lambda_entropy > 0:
-            alphas = (pred_ws).clamp(1e-5, 1 - 1e-5)
-            # alphas = alphas ** 2 # skewed entropy, favors 0 over 1
-            loss_entropy = (- alphas * torch.log2(alphas) - (1 - alphas) * torch.log2(1 - alphas)).mean()
-            if self.wandb_obj is not None:
-                self.wandb_obj.log({'entropy_loss':loss_entropy.item()})            
-            loss = loss + self.opt.lambda_entropy * loss_entropy
-
-        if self.opt.lambda_orient > 0 and 'loss_orient' in outputs:
-            loss_orient = outputs['loss_orient']
-            if self.wandb_obj is not None:
-                self.wandb_obj.log({'orient_loss':loss_orient.item()})
-            loss = loss + self.opt.lambda_orient * loss_orient
-        return pred_rgb, pred_ws, loss
-
     def eval_step(self, data):
 
         rays_o = data['rays_o'] # [B, N, 3]
@@ -544,7 +401,7 @@ class Trainer(object):
 
     ### ------------------------------
 
-    def train(self, train_loader, valid_loader,test_loader, max_epochs):
+    def get_results(self, train_loader, valid_loader,test_loader, max_epochs):
         if self.use_tensorboardX and self.local_rank == 0:
             self.writer = tensorboardX.SummaryWriter(os.path.join(self.workspace, "run", self.name))
 
@@ -557,18 +414,16 @@ class Trainer(object):
             self.epoch = epoch
             self.model.module.epoch = epoch
             self.model.module.sigma_net.epoch = epoch 
-            self.train_one_epoch(train_loader)
+            self.update_sampler_grid(train_loader)
 
-            if self.workspace is not None and self.local_rank == 0:
-                self.save_checkpoint(full=True, best=False)
+            #if self.workspace is not None and self.local_rank == 0:
+            #    self.save_checkpoint(full=True, best=False)
 
             #GPUtil.showUtilization()
-            X = bernoulli(1) 
             if self.epoch % self.eval_interval == 0:
                 for idx, val in enumerate(self.text_z):
                     if idx in self.opt.train_list + self.opt.test_list:
                         self.evaluate_one_epoch(valid_loader, scene_id= idx)
-                    self.save_checkpoint(full=False, best=True)
                     #if X.rvs(1)[0] ==1:
                     #if idx == 0:
                     #    self.test(test_loader, scene_id = idx)               
@@ -644,249 +499,27 @@ class Trainer(object):
                 self.wandb_obj.log({"video_{}".format(scene_id): wandb.Video(save_path +"/"+str(name)+'_{}_rgb.gif'.format(scene_id), fps=30, format='gif')})
             print(save_path +'/'+str(name)+'_{}_rgb.gif'.format(scene_id))
         self.log(f"==> Finished Test.")
-    
-    # [GUI] train text step.
-    # def train_gui(self, train_loader, step=16):
 
-    #     self.model.train()
-
-    #     total_loss = torch.tensor([0], dtype=torch.float32, device=self.device)
-        
-    #     loader = iter(train_loader)
-
-    #     for _ in range(step):
-            
-    #         # mimic an infinite loop dataloader (in case the total dataset is smaller than step)
-    #         try:
-    #             data = next(loader)
-    #         except StopIteration:
-    #             loader = iter(train_loader)
-    #             data = next(loader)
-
-    #         # update grid every 16 steps
-    #         if self.model.cuda_ray and self.global_step % self.opt.update_extra_interval == 0:
-    #             with torch.cuda.amp.autocast(enabled=self.fp16):
-    #                 self.model.update_extra_state()
-            
-    #         self.global_step += 1
-
-    #         self.optimizer.zero_grad()
-
-    #         with torch.cuda.amp.autocast(enabled=self.fp16):
-    #             pred_rgbs, pred_ws, loss = self.train_step(data)
-         
-    #         self.scaler.scale(loss).backward()
-    #         self.scaler.step(self.optimizer)
-    #         self.scaler.update()
-            
-    #         if self.scheduler_update_every_step:
-    #             self.lr_scheduler.step()
-
-    #         total_loss += loss.detach()
-
-    #     if self.ema is not None:
-    #         self.ema.update()
-
-    #     average_loss = total_loss.item() / step
-
-    #     if not self.scheduler_update_every_step:
-    #         if isinstance(self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-    #             self.lr_scheduler.step(average_loss)
-    #         else:
-    #             self.lr_scheduler.step()
-
-    #     outputs = {
-    #         'loss': average_loss,
-    #         'lr': self.optimizer.param_groups[0]['lr'],
-    #     }
-        
-    #     return outputs
-
-    
-    # # [GUI] test on a single image
-    # def test_gui(self, pose, intrinsics, W, H, bg_color=None, spp=1, downscale=1, light_d=None, ambient_ratio=1.0, shading='albedo'):
-        
-    #     # render resolution (may need downscale to for better frame rate)
-    #     rH = int(H * downscale)
-    #     rW = int(W * downscale)
-    #     intrinsics = intrinsics * downscale
-
-    #     pose = torch.from_numpy(pose).unsqueeze(0).to(self.device)
-
-    #     rays = get_rays(pose, intrinsics, rH, rW, -1)
-
-    #     # from degree theta/phi to 3D normalized vec
-    #     light_d = np.deg2rad(light_d)
-    #     light_d = np.array([
-    #         np.sin(light_d[0]) * np.sin(light_d[1]),
-    #         np.cos(light_d[0]),
-    #         np.sin(light_d[0]) * np.cos(light_d[1]),
-    #     ], dtype=np.float32)
-    #     light_d = torch.from_numpy(light_d).to(self.device)
-
-    #     data = {
-    #         'rays_o': rays['rays_o'],
-    #         'rays_d': rays['rays_d'],
-    #         'H': rH,
-    #         'W': rW,
-    #         'light_d': light_d,
-    #         'ambient_ratio': ambient_ratio,
-    #         'shading': shading,
-    #     }
-        
-    #     self.model.eval()
-
-    #     if self.ema is not None:
-    #         self.ema.store()
-    #         self.ema.copy_to()
-
-    #     with torch.no_grad():
-    #         with torch.cuda.amp.autocast(enabled=self.fp16):
-    #             # here spp is used as perturb random seed!
-    #             preds, preds_depth = self.test_step(data, bg_color=bg_color, perturb=spp)
-
-    #     if self.ema is not None:
-    #         self.ema.restore()
-
-    #     # interpolation to the original resolution
-    #     if downscale != 1:
-    #         # have to permute twice with torch...
-    #         preds = F.interpolate(preds.permute(0, 3, 1, 2), size=(H, W), mode='nearest').permute(0, 2, 3, 1).contiguous()
-    #         preds_depth = F.interpolate(preds_depth.unsqueeze(1), size=(H, W), mode='nearest').squeeze(1)
-
-    #     outputs = {
-    #         'image': preds[0].detach().cpu().numpy(),
-    #         'depth': preds_depth[0].detach().cpu().numpy(),
-    #     }
-
-    #     return outputs
-
-    def train_one_epoch(self, loader):
-
-
-        if self.opt.curricullum:
-            num_objects = min((self.global_step // 1000 ) + 2, len(self.text_z))
-        else:
-            num_objects = len(self.text_z)
-
-        self.log(f"==> Start Training {self.workspace} Epoch {self.epoch}, lr={self.optimizer.param_groups[0]['lr']:.6f} ...")
-
-        total_loss = 0
-        if self.local_rank == 0 and self.report_metric_at_train:
-            for metric in self.metrics:
-                metric.clear()
-
+    def update_sampler_grid(self, loader):
         self.model.train()
 
-        # distributedSampler: must call set_epoch() to shuffle indices across multiple epochs
-        # ref: https://pytorch.org/docs/stable/data.html
         if self.world_size > 1:
             loader.sampler.set_epoch(self.epoch)
         
         if self.local_rank == 0:
             pbar = tqdm.tqdm(total=len(loader) * loader.batch_size, bar_format='{desc}: {percentage:3.0f}% {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]')
 
-        self.local_step = 0
 
         for data in loader:
             
             # update grid every 16 steps
-            if self.model.module.cuda_ray and self.global_step % self.opt.update_extra_interval == 0:
-                with torch.cuda.amp.autocast(enabled=self.fp16):
-                    for idx in range(self.opt.num_scenes):
-                        self.model.module.scene_id = idx
-                        if idx in self.opt.train_list + self.opt.test_list: 
-                            self.model.module.update_extra_state(idx)
-            self.local_step += 1
-            self.global_step += 1
-            self.optimizer.zero_grad()
-            meta_bs = min(len(self.text_z), self.opt.meta_batch_size)
-            #TODO: revert
-            '''
-            if self.opt.skip_list is None: 
-                scene_ids = random.sample(list(range(0,len(self.text_z)))[:num_objects], min(self.opt.meta_batch_size, len(list(range(0,len(self.text_z)))[:num_objects])))
-            else:
-                train_scenes = list(set(list(range(0,len(self.text_z)))[:num_objects]) - set(self.opt.skip_list))
-                scene_ids = random.sample(train_scenes, min(self.opt.meta_batch_size, len(train_scenes))) 
-            '''
-
-            if self.opt.train_list is None:
-                scene_ids = random.sample(list(range(0,len(self.text_z)))[:num_objects], min(self.opt.meta_batch_size, len(list(range(0,len(self.text_z)))[:num_objects])))
-            else:
-                train_scenes = self.opt.train_list #list(set(list(range(0,len(self.text_z)))[:num_objects]) - set(self.opt.skip_list))
-                scene_ids = random.sample(train_scenes[:num_objects], min(self.opt.meta_batch_size, len(train_scenes[:num_objects])))
-            #scene_ids = [1]
-            #scene_id = torch.bernoulli(torch.tensor([0.0]))
-            #scene_id = int(scene_id.item())
-            #scene_ids = [self.global_step%2]
             with torch.cuda.amp.autocast(enabled=self.fp16):
-                full_loss = 0
-                for scene_id in scene_ids:
-                    pred_rgbs, pred_ws, loss = self.train_step(data, scene_id)
-                    
-                    full_loss = full_loss + loss
-                loss = full_loss/len(scene_ids)
-            if self.fp16:
-                self.scaler.scale(loss).backward()
-                self.scaler.step(self.optimizer)
-                self.scaler.update()
-            else:
-                loss.backward()
-                if self.opt.clip_grad:
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(),self.opt.clip_grad_val )
-                self.optimizer.step()
+                for idx in range(self.opt.num_scenes):
+                    self.model.module.scene_id = idx
+                    if idx in self.opt.train_list + self.opt.test_list: 
+                        self.model.module.update_extra_state(idx)
+            return
             
-
-            if self.scheduler_update_every_step:
-                self.lr_scheduler.step()
-
-            loss_val = loss.item()
-            del loss
-            loss = None
-            gc.collect()
-            
-            total_loss += loss_val
-
-            if self.wandb_obj is not None:
-                self.wandb_obj.log({'loss':loss_val})
-            if self.local_rank == 0:
-                # if self.report_metric_at_train:
-                #     for metric in self.metrics:
-                #         metric.update(preds, truths)
-                        
-                if self.use_tensorboardX:
-                    self.writer.add_scalar("train/loss", loss_val, self.global_step)
-                    self.writer.add_scalar("train/lr", self.optimizer.param_groups[0]['lr'], self.global_step)
-
-                if self.scheduler_update_every_step:
-                    pbar.set_description(f"loss={loss_val:.4f} ({total_loss/self.local_step:.4f}), lr={self.optimizer.param_groups[0]['lr']:.6f}")
-                else:
-                    pbar.set_description(f"loss={loss_val:.4f} ({total_loss/self.local_step:.4f})")
-                pbar.update(loader.batch_size)
-
-        if self.ema is not None:
-            self.ema.update()
-
-        average_loss = total_loss / self.local_step
-        self.stats["loss"].append(average_loss)
-
-        if self.local_rank == 0:
-            pbar.close()
-            if self.report_metric_at_train:
-                for metric in self.metrics:
-                    self.log(metric.report(), style="red")
-                    if self.use_tensorboardX:
-                        metric.write(self.writer, self.epoch, prefix="train")
-                    metric.clear()
-
-        if not self.scheduler_update_every_step:
-            if isinstance(self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                self.lr_scheduler.step(average_loss)
-            else:
-                self.lr_scheduler.step()
-
-        self.log(f"==> Finished Epoch {self.epoch}.")
-
 
     def evaluate_one_epoch(self, loader, name=None, scene_id = None ):
         self.log(f"++> Evaluate {self.workspace} at epoch {self.epoch} ...")
@@ -980,64 +613,7 @@ class Trainer(object):
 
         self.log(f"++> Evaluate epoch {self.epoch} Finished.")
 
-    def save_checkpoint(self, name=None, full=False, best=False):
-
-        if name is None:
-            name = f'{self.name}_ep{self.epoch:04d}'
-
-        state = {
-            'epoch': self.epoch,
-            'global_step': self.global_step,
-            'stats': self.stats,
-            'num_scenes': self.opt.num_scenes
-            
-        }
-
-        if self.model.module.cuda_ray:
-            state['mean_count'] = self.model.module.mean_count
-            state['mean_density'] = self.model.module.mean_density
-
-        if full:
-            state['optimizer'] = self.optimizer.state_dict()
-            state['lr_scheduler'] = self.lr_scheduler.state_dict()
-            state['scaler'] = self.scaler.state_dict()
-            if self.ema is not None:
-                state['ema'] = self.ema.state_dict()
-        
-        if not best:
-            state['model'] = self.model.state_dict()
-
-            file_path = f"{name}.pth"
-
-            self.stats["checkpoints"].append(file_path)
-
-            if len(self.stats["checkpoints"]) > self.max_keep_ckpt:
-                old_ckpt = os.path.join(self.ckpt_path, self.stats["checkpoints"].pop(0))
-                if os.path.exists(old_ckpt):
-                    os.remove(old_ckpt)
-
-            torch.save(state, os.path.join(self.ckpt_path, file_path))
-
-        else:
-            if len(self.stats["results"]) > 0:
-                if self.stats["best_result"] is None or self.stats["results"][-1] < self.stats["best_result"]:
-                    self.log(f"[INFO] New best result: {self.stats['best_result']} --> {self.stats['results'][-1]}")
-                    self.stats["best_result"] = self.stats["results"][-1]
-
-                    # save ema results 
-                    if self.ema is not None:
-                        self.ema.store()
-                        self.ema.copy_to()
-
-                    state['model'] = self.model.state_dict()
-
-                    if self.ema is not None:
-                        self.ema.restore()
-                    
-                    torch.save(state, self.best_path)
-            else:
-                self.log(f"[WARN] no evaluated results found, skip saving best checkpoint.")
-            
+           
     def load_checkpoint(self, checkpoint=None, model_only=False):
         if checkpoint is None:
             checkpoint_list = sorted(glob.glob(f'{self.ckpt_path}/*.pth'))
