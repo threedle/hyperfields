@@ -78,7 +78,7 @@ python main.py \
 
 ```
 ## Downloading and loading checkpoints
-We have a google drive with all the teacher networks and the student network that is capable of zero-shot generalization
+We have a [google drive](https://drive.google.com/file/d/10EaY6SfN1JPVoei8scin-B9xV5ZuX5y7/view?usp=drive_link) with all the teacher networks and the student network that is capable of zero-shot generalization
 ```
 #To load and evaluate pre-trained checkpoint, in this case we load the pot_teacher model.
 python main_eval.py \ 
