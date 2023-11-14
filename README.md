@@ -113,7 +113,8 @@ We build upon [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusio
 title={HyperFields: Towards Zero-Shot Generation of NeRFs from Text},
 author={Babu, Sudarshan and Liu, Richard and Zhou, Avery and Maire, Michael and Shakhnarovich, Greg and Hanocka, Rana},
 journal={arXiv preprint arXiv:2310.17075},
-year={2023} }
+year={2023}
+}
 ```
 
 
