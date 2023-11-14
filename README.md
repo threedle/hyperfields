@@ -108,8 +108,13 @@ Due to the sensitivity of SDS optimization and some non determinism, results can
 We build upon [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion) and [Trans-INR](https://github.com/yinboc/trans-inr). We thank them for their contribution.
 
 ## Citation
-@article{babu2023hyperfields,   title={HyperFields: Towards Zero-Shot Generation of NeRFs from Text},   author={Babu, Sudarshan and Liu, Richard and Zhou, Avery and Maire, Michael and Shakhnarovich, Greg and Hanocka, Rana},   journal={arXiv preprint arXiv:2310.17075},   year={2023} }
-
+```
+@article{babu2023hyperfields,
+title={HyperFields: Towards Zero-Shot Generation of NeRFs from Text},
+author={Babu, Sudarshan and Liu, Richard and Zhou, Avery and Maire, Michael and Shakhnarovich, Greg and Hanocka, Rana},
+journal={arXiv preprint arXiv:2310.17075},
+year={2023} }
+```
 
 
 
