@@ -1,6 +1,6 @@
 setup.py
-/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/src/bindings.cpp
-/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/src/freqencoder.cu
+/net/scratch/rliu/hyperfields/freqencoder/src/bindings.cpp
+/net/scratch/rliu/hyperfields/freqencoder/src/freqencoder.cu
 freqencoder.egg-info/PKG-INFO
 freqencoder.egg-info/SOURCES.txt
 freqencoder.egg-info/dependency_links.txt

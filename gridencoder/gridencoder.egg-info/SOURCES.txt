@@ -1,6 +1,6 @@
 setup.py
-/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/src/bindings.cpp
-/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/src/gridencoder.cu
+/net/scratch/rliu/hyperfields/gridencoder/src/bindings.cpp
+/net/scratch/rliu/hyperfields/gridencoder/src/gridencoder.cu
 gridencoder.egg-info/PKG-INFO
 gridencoder.egg-info/SOURCES.txt
 gridencoder.egg-info/dependency_links.txt

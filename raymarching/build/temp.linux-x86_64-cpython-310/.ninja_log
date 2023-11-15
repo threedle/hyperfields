@@ -1,3 +1,3 @@
 # ninja log v5
-2	19867	1688943335851726266	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/bindings.o	991162e30653e1c8
-2	50772	1688943366868088239	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/raymarching.o	b07643b872a4b289
+1	29677	1700066219113792786	/net/scratch/rliu/hyperfields/raymarching/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/raymarching/src/bindings.o	c829c005b5f6a1a8
+3	54448	1700066243876759593	/net/scratch/rliu/hyperfields/raymarching/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/raymarching/src/raymarching.o	632268ed2697dfee

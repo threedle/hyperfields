@@ -1,3 +1,3 @@
 # ninja log v5
-2	17241	1688943448218037612	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/src/bindings.o	15ff81f669c1a0b0
-2	46246	1688943477300377006	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/freqencoder/src/freqencoder.o	260d2c49bfee0e01
+1	27635	1700066565091366220	/net/scratch/rliu/hyperfields/freqencoder/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/freqencoder/src/bindings.o	3866075eecb7e4e2
+4	52306	1700066589754338385	/net/scratch/rliu/hyperfields/freqencoder/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/freqencoder/src/freqencoder.o	70a8766f3375b028

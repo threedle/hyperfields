@@ -1,3 +1,3 @@
 # ninja log v5
-2	17608	1688943503444682110	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/src/bindings.o	d6afb907ce29bcfd
-2	85675	1688943571620477716	/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/gridencoder/src/gridencoder.o	6561035e944f2b78
+1	27949	1700066390442646599	/net/scratch/rliu/hyperfields/gridencoder/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/gridencoder/src/bindings.o	f107020d0c32e37
+3	91585	1700066454059994226	/net/scratch/rliu/hyperfields/gridencoder/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/gridencoder/src/gridencoder.o	e436f3d2a1cee503

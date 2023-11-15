@@ -1,0 +1,8 @@
+Processing ./raymarching
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Building wheels for collected packages: raymarching
+  Building wheel for raymarching (setup.py): started
+  Building wheel for raymarching (setup.py): finished with status 'error'
+  Running setup.py clean for raymarching
+Failed to build raymarching

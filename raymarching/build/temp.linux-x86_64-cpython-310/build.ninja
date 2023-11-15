@@ -1,11 +1,11 @@
 ninja_required_version = 1.3
-cxx = /share/data/2pals/sudarshan/mc_hyper/bin/x86_64-conda-linux-gnu-c++
+cxx = c++
 nvcc = /usr/local/cuda/bin/nvcc
 
-cflags = -Wno-unused-result -Wsign-compare -DNDEBUG -fwrapv -O2 -Wall -fPIC -O2 -isystem /share/data/2pals/sudarshan/mc_hyper/include -fPIC -O2 -isystem /share/data/2pals/sudarshan/mc_hyper/include -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protector-strong -fno-plt -O2 -ffunction-sections -pipe -isystem /share/data/pals/sudarshan/env_stuff/mc3/include -DNDEBUG -D_FORTIFY_SOURCE=2 -O2 -isystem /share/data/pals/sudarshan/env_stuff/mc3/include -fPIC -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/torch/csrc/api/include -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/TH -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/THC -I/usr/local/cuda/include -I/share/data/2pals/sudarshan/mc_hyper/include/python3.10 -c
-post_cflags = -O3 -std=c++14 -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=_raymarching -D_GLIBCXX_USE_CXX11_ABI=0
-cuda_cflags = -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/torch/csrc/api/include -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/TH -I/share/data/2pals/sudarshan/mc_hyper/lib/python3.10/site-packages/torch/include/THC -I/usr/local/cuda/include -I/share/data/2pals/sudarshan/mc_hyper/include/python3.10 -c
-cuda_post_cflags = -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options ''"'"'-fPIC'"'"'' -O3 -std=c++14 -U__CUDA_NO_HALF_OPERATORS__ -U__CUDA_NO_HALF_CONVERSIONS__ -U__CUDA_NO_HALF2_OPERATORS__ -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=_raymarching -D_GLIBCXX_USE_CXX11_ABI=0 -ccbin /share/data/2pals/sudarshan/mc_hyper/bin/x86_64-conda-linux-gnu-cc
+cflags = -pthread -B /net/projects/ranalab/guanzhi/.conda/envs/hyperfields/compiler_compat -Wno-unused-result -Wsign-compare -DNDEBUG -fwrapv -O2 -Wall -fPIC -O2 -isystem /net/projects/ranalab/guanzhi/.conda/envs/hyperfields/include -fPIC -O2 -isystem /net/projects/ranalab/guanzhi/.conda/envs/hyperfields/include -fPIC -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/torch/csrc/api/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/TH -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/THC -I/usr/local/cuda/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/include/python3.10 -c
+post_cflags = -O3 -std=c++17 -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=_raymarching -D_GLIBCXX_USE_CXX11_ABI=0
+cuda_cflags = -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/torch/csrc/api/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/TH -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/lib/python3.10/site-packages/torch/include/THC -I/usr/local/cuda/include -I/net/projects/ranalab/guanzhi/.conda/envs/hyperfields/include/python3.10 -c
+cuda_post_cflags = -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options ''"'"'-fPIC'"'"'' -O3 -std=c++17 -U__CUDA_NO_HALF_OPERATORS__ -U__CUDA_NO_HALF_CONVERSIONS__ -U__CUDA_NO_HALF2_OPERATORS__ -DTORCH_API_INCLUDE_EXTENSION_H '-DPYBIND11_COMPILER_TYPE="_gcc"' '-DPYBIND11_STDLIB="_libstdcpp"' '-DPYBIND11_BUILD_ABI="_cxxabi1011"' -DTORCH_EXTENSION_NAME=_raymarching -D_GLIBCXX_USE_CXX11_ABI=0
 cuda_dlink_post_cflags = 
 ldflags = 
 
@@ -23,9 +23,8 @@ rule cuda_compile
 
 
 
-build /share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/bindings.o: compile /share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/bindings.cpp
-build /share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/build/temp.linux-x86_64-cpython-310/share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/raymarching.o: cuda_compile /share/data/pals/sudarshan/maml/dreamfusion/LocalStableDreamFusion/raymarching/src/raymarching.cu
-
+build /net/scratch/rliu/hyperfields/raymarching/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/raymarching/src/bindings.o: compile /net/scratch/rliu/hyperfields/raymarching/src/bindings.cpp
+build /net/scratch/rliu/hyperfields/raymarching/build/temp.linux-x86_64-cpython-310/net/scratch/rliu/hyperfields/raymarching/src/raymarching.o: cuda_compile /net/scratch/rliu/hyperfields/raymarching/src/raymarching.cu
 
 
 
