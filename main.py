@@ -8,7 +8,7 @@ import wandb
 from pdb import set_trace
 import copy
 import shutil
-torch.backends.cudnn.enabled = True 
+torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
 # from nerf.gui import NeRFGUI
 
@@ -24,7 +24,7 @@ def clear_directory(path):
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-            
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--w', type=int, default=64, help="render width for NeRF in training")
     parser.add_argument('--h', type=int, default=64, help="render height for NeRF in training")
     parser.add_argument('--jitter_pose', action='store_true', help="add jitters to the randomly sampled camera poses")
-    
+
     ### dataset options
     parser.add_argument('--bound', type=float, default=1, help="assume the scene is bounded in box(-bound, bound)")
     parser.add_argument('--dt_gamma', type=float, default=0, help="dt_gamma (>=0) for adaptive ray marching. set to 0 to disable, >0 to accelerate rendering (but usually with worse quality)")
@@ -93,8 +93,8 @@ if __name__ == '__main__':
 
     ### Logging options
     parser.add_argument('--wandb_flag', action='store_true', help="log in wandb")
-    parser.add_argument('--project_name', type=str, default='test')    
-    parser.add_argument('--exp_name', type=str, default='test')    
+    parser.add_argument('--project_name', type=str, default='test')
+    parser.add_argument('--exp_name', type=str, default='test')
     parser.add_argument('--overwrite', action='store_true', help="overwrite current experiment")
 
     ###Network options
@@ -115,13 +115,14 @@ if __name__ == '__main__':
 
     ### Distillation options
     parser.add_argument('--load_teachers', type=str, default=None)
-    #parser.add_argument('--teacher_size', nargs='+', type = int, default = None ) 
+    parser.add_argument('--teacherclass', type=str, choices={'nerf', 'threestudio'}, default='nerf')
+    #parser.add_argument('--teacher_size', nargs='+', type = int, default = None )
     parser.add_argument('--teacher_size', type = int, default = None )
     #### Other option
     parser.add_argument('--mem', action='store_true', help="overwrite current experiment")
     parser.add_argument('--dummy', action='store_true', help="overwrite current experiment")
     parser.add_argument('--test_teachers', action='store_true', help="overwrite current experiment")
-    parser.add_argument('--not_diff_loss', action='store_true', help="overwrite current experiment") 
+    parser.add_argument('--not_diff_loss', action='store_true', help="overwrite current experiment")
     parser.add_argument('--dist_image_loss', action='store_true', help="overwrite current experiment")
     parser.add_argument('--dist_sigma_rgb_loss', action='store_true', help="overwrite current experiment")
     parser.add_argument('--dist_depth_loss', action='store_true', help="overwrite current experiment")
@@ -136,7 +137,7 @@ if __name__ == '__main__':
     # parser.add_argument('--max_spp', type=int, default=1, help="GUI rendering max sample per pixel")
     opt = parser.parse_args()
     if opt.arch != 'mlp':
-        
+
         with open(opt.text[0]) as f:
             lines = f.readlines()
         lines = [line.replace("\n", "") for line in lines]
@@ -146,17 +147,17 @@ if __name__ == '__main__':
         with open(opt.teacher_text[0]) as f:
                 lines = f.readlines()
         opt.teacher_text = [" ".join(line.split()) for line in lines]
-  
+
     opt.num_scenes = len(opt.text)
     opt.workspace = os.path.join("outputs", opt.project_name+'_'+opt.exp_name)
     print(opt.text)
     if opt.pre_trained_path is not None:
         os.makedirs(opt.workspace+"/checkpoints")
         print('copying...')
-        shutil.copyfile(sorted(glob.glob(f'{opt.pre_trained_path}checkpoints/*.pth'))[-1], f'{opt.workspace}/checkpoints/df_ep0001.pth') 
-    if opt.overwrite and os.path.exists(opt.workspace): 
+        shutil.copyfile(sorted(glob.glob(f'{opt.pre_trained_path}checkpoints/*.pth'))[-1], f'{opt.workspace}/checkpoints/df_ep0001.pth')
+    if opt.overwrite and os.path.exists(opt.workspace):
         clear_directory(opt.workspace)
-       
+
     if opt.wandb_flag:
         resume_flag = opt.ckpt == 'latest'
         wandb.init(project = opt.project_name,config = opt, resume = True, name = opt.exp_name, id = opt.exp_name)
@@ -187,7 +188,7 @@ if __name__ == '__main__':
         raise NotImplementedError(f'--backbone {opt.backbone} is not implemented!')
     '''
     print(opt)
-   
+
     seed_everything(opt.seed)
     '''
     if  'hyper_transformer' in opt.arch:
@@ -205,37 +206,84 @@ if __name__ == '__main__':
         model = NeRFNetwork(opt, num_layers= opt.num_layers, hidden_dim = opt.hidden_dim)
     '''
 
-    if opt.load_teachers is not None: 
+    if opt.load_teachers is not None:
         with open(opt.load_teachers) as f:
             lines = f.readlines()
         lines = [line.replace("\n", "") for line in lines]
         opt.teacher_paths = lines
 
         model.teacher_models = []
-        for idx, path in enumerate(opt.teacher_paths):
-            print(path)
-            model_path =  glob.glob(opt.teacher_paths[idx]+"/checkpoints/*")[-1]
-            model_teacher = nn.DataParallel(NeRFNetwork(opt, num_layers= opt.num_layers, hidden_dim = opt.hidden_dim,wandb_obj=wandb, teacher_flag = True, teacher_id = idx), device_ids = [0])
-        #TODO fix these
-            
-            #model_teacher.module.scene_id = idx
-            model_teacher.module.sigma_net.epoch = 0
-            model_teacher.module.load_checkpoint( checkpoint = model_path)
-            model.teacher_models.append(model_teacher)
-            if opt.test_teachers:
+
+        # Different teacher NeRF classes
+        if opt.teacherclass == 'nerf':
+            for idx, path in enumerate(opt.teacher_paths):
+                print(path)
+                model_path =  glob.glob(opt.teacher_paths[idx]+"/checkpoints/*")[-1]
+                model_teacher = nn.DataParallel(NeRFNetwork(opt, num_layers= opt.num_layers, hidden_dim = opt.hidden_dim,wandb_obj=wandb, teacher_flag = True, teacher_id = idx), device_ids = [0])
+            #TODO fix these
+
+                #model_teacher.module.scene_id = idx
+                model_teacher.module.sigma_net.epoch = 0
+                model_teacher.module.load_checkpoint( checkpoint = model_path)
+                model.teacher_models.append(model_teacher)
+        elif opt.teacherclass == 'threestudio':
+            import threestudio
+            from threestudio.utils.misc import load_module_weights
+            for idx, path in enumerate(opt.teacher_paths):
+                print(path)
+                background = threestudio.find('solid-color-background')({'color': (1.0, 1.0, 1.0)}).to('cuda')
+                material = threestudio.find('no-material')({'n_output_dims': 3}).to('cuda')
+                from threestudio.utils.config import load_config, parse_structured
+                prev_cfg = load_config(
+                    os.path.join(
+                        os.path.dirname(path),
+                        "../configs/parsed.yaml",
+                    )
+                )
+                prev_geometry_cfg = prev_cfg.system.geometry
+                prev_geometry = threestudio.find(prev_cfg.system.geometry_type)(
+                    prev_geometry_cfg
+                )
+                state_dict, epoch, global_step = load_module_weights(
+                    path,
+                    module_name="geometry",
+                    map_location="cpu",
+                )
+                prev_geometry.load_state_dict(state_dict, strict=False)
+                prev_geometry.do_update_step(epoch, global_step, on_load_weights=True)
+                geometry = prev_geometry.to('cuda')
+
+                prev_renderer_cfg = prev_cfg.system.renderer
+                prev_renderer = threestudio.find(prev_cfg.system.renderer_type)(
+                    prev_renderer_cfg, geometry=geometry, material=material, background=background
+                )
+                state_dict, epoch, global_step = load_module_weights(
+                    path,
+                    module_name="renderer",
+                    map_location="cpu",
+                )
+                prev_renderer.load_state_dict(state_dict, strict=False)
+                prev_renderer.do_update_step(epoch, global_step, on_load_weights=True)
+                render = prev_renderer.to('cuda')
+                # NOTE: the render class is all you need to query images!
+                model.teacher_models.append(render)
+
+        if opt.test_teachers:
+            for model_teacher in model.teacher_models:
                 for index in range(opt.num_scenes):
-                    model_teacher.module.scene_id = index % opt.teacher_size
+                    if opt.teacherclass == 'nerf':
+                        model_teacher.module.scene_id = index % opt.teacher_size
+                        model_teacher.module.sigma_net.epoch = 0
                     #model_teacher.module.scene_id = idx
-                    model_teacher.module.load_checkpoint( checkpoint = model_path)
+                    # model_teacher.module.load_checkpoint( checkpoint = model_path)
                     from nerf.sd import StableDiffusion
                     guidance = StableDiffusion('cuda')
                     trainer = Trainer('df', opt, model_teacher, guidance, device='cuda', workspace=opt.workspace, fp16=opt.fp16, use_checkpoint='scratch')
                     test_loader = NeRFDataset(opt, device='cuda', type='test', H=opt.H, W=opt.W, size=100).dataloader()
-                    model_teacher.module.sigma_net.epoch = 0
                     trainer.test(test_loader, scene_id = idx)
-    
 
-     
+
+
     #print(model)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -247,10 +295,10 @@ if __name__ == '__main__':
 
         test_loader = NeRFDataset(opt, device=device, type='test', H=opt.H, W=opt.W, size=100).dataloader()
         trainer.test(test_loader)
-        
+
         if opt.save_mesh:
             trainer.save_mesh(resolution=256)
-    
+
     else:
         if opt.guidance == 'stable-diffusion':
             from nerf.sd import StableDiffusion
