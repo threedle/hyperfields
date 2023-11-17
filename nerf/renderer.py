@@ -386,6 +386,7 @@ class NeRFRenderer(nn.Module):
         ]).to('cuda').reshape(1, 1, 3, 3).float()
 
         # NOTE: MUST PASS ROT_* RAYS + light_position INTO THE TEACHER MODEL
+        # example call: teacher_model(rot_rays_o, rot_rays_d, light_position)
         rot_rays_o = (yrot2 @ xrot @ yrot @ rays_o.unsqueeze(-1)).squeeze(-1)
         rot_rays_d = (yrot2 @ xrot @ yrot @ rays_d.unsqueeze(-1)).squeeze(-1)
         light_position = torch.tensor([[1.4489, 0.0000, 0.3882]], device='cuda')
