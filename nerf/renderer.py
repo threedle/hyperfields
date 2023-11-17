@@ -84,10 +84,10 @@ class NeRFRenderer(nn.Module):
         # extra state for cuda raymarching
         if self.teacher_flag:
             num_scenes = self.opt.teacher_size
-            
+
         else:
             num_scenes = self.opt.num_scenes
-        
+
         if self.cuda_ray:
             # density grid
             if True:
@@ -96,13 +96,13 @@ class NeRFRenderer(nn.Module):
                 self.density_bitfield =  [torch.zeros(self.cascade * self.grid_size ** 3 // 8, dtype=torch.uint8).cuda() for i in range(num_scenes) ]# [CAS * H * H * H // 8]
                 #self.register_buffer('density_grid', density_grid)
                 #self.register_buffer('density_bitfield', density_bitfield)
-            
+
                 self.mean_density = torch.zeros(num_scenes)
                 self.iter_density = torch.zeros(num_scenes)
                 # step counter
                 step_counter = torch.zeros(num_scenes, 16, 2, dtype=torch.int32) # 16 is hardcoded for averaging...
                 self.register_buffer('step_counter', step_counter)
-                self.mean_count = torch.zeros(num_scenes) 
+                self.mean_count = torch.zeros(num_scenes)
                 self.local_step = torch.zeros(num_scenes)
 
 
@@ -138,7 +138,7 @@ class NeRFRenderer(nn.Module):
             self.local_step = torch.zeros(num_scenes)
 
 
-    
+
     def forward(self, x, d):
         raise NotImplementedError()
 
@@ -150,7 +150,7 @@ class NeRFRenderer(nn.Module):
 
     def reset_extra_state(self):
         if not self.cuda_ray:
-            return 
+            return
         # density grid
         self.density_grid.zero_()
         self.mean_density = 0
@@ -238,10 +238,10 @@ class NeRFRenderer(nn.Module):
             xyzs, _ = dr.interpolate(v.unsqueeze(0), rast, f) # [1, h, w, 3]
             mask, _ = dr.interpolate(torch.ones_like(v[:, :1]).unsqueeze(0), rast, f) # [1, h, w, 1]
 
-            # masked query 
+            # masked query
             xyzs = xyzs.view(-1, 3)
             mask = (mask > 0).view(-1)
-            
+
             sigmas = torch.zeros(h * w, device=device, dtype=torch.float32)
             feats = torch.zeros(h * w, 3, device=device, dtype=torch.float32)
 
@@ -261,7 +261,7 @@ class NeRFRenderer(nn.Module):
 
                 sigmas[mask] = torch.cat(all_sigmas, dim=0)
                 feats[mask] = torch.cat(all_feats, dim=0)
-            
+
             sigmas = sigmas.view(h, w, 1)
             feats = feats.view(h, w, -1)
             mask = mask.view(h, w)
@@ -314,14 +314,14 @@ class NeRFRenderer(nn.Module):
             print(f'[INFO] writing obj mesh to {obj_file}')
             with open(obj_file, "w") as fp:
                 fp.write(f'mtllib {name}mesh.mtl \n')
-                
+
                 print(f'[INFO] writing vertices {v_np.shape}')
                 for v in v_np:
                     fp.write(f'v {v[0]} {v[1]} {v[2]} \n')
-            
+
                 print(f'[INFO] writing vertices texture coords {vt_np.shape}')
                 for v in vt_np:
-                    fp.write(f'vt {v[0]} {1 - v[1]} \n') 
+                    fp.write(f'vt {v[0]} {1 - v[1]} \n')
 
                 print(f'[INFO] writing faces {f_np.shape}')
                 fp.write(f'usemtl mat0 \n')
@@ -364,6 +364,31 @@ class NeRFRenderer(nn.Module):
         prefix = rays_o.shape[:-1]
         rays_o = rays_o.contiguous().view(-1, 3)
         rays_d = rays_d.contiguous().view(-1, 3)
+
+        # TODO: Apply the below transformation to all sampled rays_o and rays_d
+        yangle = 3 * np.pi / 2
+        xangle = 3 * np.pi / 2
+        yrot = torch.tensor([
+            [np.cos(yangle), 0, np.sin(yangle)],
+            [0, 1, 0],
+            [-np.sin(yangle), 0, np.cos(yangle)],
+        ]).to('cuda').reshape(1, 1, 3, 3).float()
+        xrot = torch.tensor([
+            [1,0,0],
+            [0, np.cos(xangle), -np.sin(xangle)],
+            [0, np.sin(xangle), np.cos(xangle)],
+        ]).to('cuda').reshape(1, 1, 3, 3).float()
+        yangle2 = np.pi
+        yrot2 = torch.tensor([
+            [np.cos(yangle2), 0, np.sin(yangle2)],
+            [0, 1, 0],
+            [-np.sin(yangle2), 0, np.cos(yangle2)],
+        ]).to('cuda').reshape(1, 1, 3, 3).float()
+
+        # NOTE: MUST PASS ROT_* RAYS + light_position INTO THE TEACHER MODEL
+        rot_rays_o = (yrot2 @ xrot @ yrot @ rays_o.unsqueeze(-1)).squeeze(-1)
+        rot_rays_d = (yrot2 @ xrot @ yrot @ rays_d.unsqueeze(-1)).squeeze(-1)
+        light_position = torch.tensor([[1.4489, 0.0000, 0.3882]], device='cuda')
 
         N = rays_o.shape[0] # N = B * N, in fact
         device = rays_o.device
@@ -473,8 +498,8 @@ class NeRFRenderer(nn.Module):
 
         # calculate weight_sum (mask)
         weights_sum = weights.sum(dim=-1) # [N]
-        
-        # calculate depth 
+
+        # calculate depth
         ori_z_vals = ((z_vals - nears) / (fars - nears)).clamp(0, 1)
         depth = torch.sum(weights * ori_z_vals, dim=-1)
 
@@ -488,7 +513,7 @@ class NeRFRenderer(nn.Module):
             bg_color = self.background(rays_d.reshape(-1, 3)) # [N, 3]
         elif bg_color is None:
             bg_color = 1
-            
+
         image = image + (1 - weights_sum).unsqueeze(-1) * bg_color
 
         image = image.view(*prefix, 3)
@@ -536,20 +561,20 @@ class NeRFRenderer(nn.Module):
                 current_density_bitfield = self.density_bitfield[self.scene_id]
 
             xyzs, dirs, deltas, rays = raymarching.march_rays_train(rays_o, rays_d, self.bound, current_density_bitfield, self.cascade, self.grid_size, nears, fars, counter, self.mean_count[self.scene_id], perturb, 128, force_all_rays, dt_gamma, max_steps)
- 
-            
+
+
 
             #plot_pointcloud(xyzs.reshape(-1, 3).detach().cpu().numpy())
             #from pdb import set_trace
             #print("input is {} ".format(xyzs.shape))
-            
+
             sigmas, rgbs, normals = self(xyzs, dirs, light_d, ratio=ambient_ratio, shading=shading)
 
             if self.opt.dist_sigma_rgb_loss or self.opt.dist_image_loss or self.opt.dist_depth_loss:
                 with torch.no_grad():
                     sigmas_teacher, rbgs_teacher, normals_teacher = self.teacher_models[self.scene_id//self.opt.teacher_size](xyzs, dirs, light_d, ratio=ambient_ratio, shading=shading)
             #replicas = nn.parallel.replicate(self,[0,1])
-            #inputs = nn.parallel.scatter() 
+            #inputs = nn.parallel.scatter()
             #print(f'valid RGB query ratio: {mask.sum().item() / mask.shape[0]} (total = {mask.sum().item()})')
 
             weights_sum, depth, image = raymarching.composite_rays_train(sigmas, rgbs, deltas, rays, T_thresh)
@@ -565,22 +590,22 @@ class NeRFRenderer(nn.Module):
                 results['loss_orient'] = loss_orient.mean()
 
         else:
-            # allocate outputs 
+            # allocate outputs
             dtype = torch.float32
-            
+
             weights_sum = torch.zeros(N, dtype=dtype, device=device)
             depth = torch.zeros(N, dtype=dtype, device=device)
             image = torch.zeros(N, 3, dtype=dtype, device=device)
-            
+
             n_alive = N
             rays_alive = torch.arange(n_alive, dtype=torch.int32, device=device) # [N]
             rays_t = nears.clone() # [N]
 
             step = 0
-            
+
             while step < max_steps: # hard coded max step
 
-                # count alive rays 
+                # count alive rays
                 n_alive = rays_alive.shape[0]
 
                 # exit loop
@@ -593,7 +618,7 @@ class NeRFRenderer(nn.Module):
                 if not self.teacher_flag:
                     current_density_bitfield = self.density_bitfield[self.scene_id]
 
-    
+
 
                 xyzs, dirs, deltas = raymarching.march_rays(n_alive, n_step, rays_alive, rays_t, rays_o, rays_d, self.bound, current_density_bitfield, self.cascade, self.grid_size, nears, fars, 128, perturb if step == 0 else False, dt_gamma, max_steps)
 
@@ -609,10 +634,10 @@ class NeRFRenderer(nn.Module):
 
         # mix background color
         if self.bg_radius > 0:
-            
+
             # use the bg model to calculate bg_color
             # sph = raymarching.sph_from_ray(rays_o, rays_d, self.bg_radius) # [N, 2] in [-1, 1]
-            
+
             bg_color = self.background(rays_d) # [N, 3]
             if self.opt.dist_image_loss and self.training:
                 bg_color_teacher = self.teacher_models[self.scene_id // self.opt.teacher_size].module.background(rays_d)
@@ -655,13 +680,13 @@ class NeRFRenderer(nn.Module):
     def update_extra_state(self, scene_id, decay=0.95, S=128 ):
         # call before each epoch to update extra states.
         if not self.cuda_ray:
-            return 
+            return
         ### update density grid
         if not self.teacher_flag:
-            current_density_grid = self.density_grid[scene_id] 
+            current_density_grid = self.density_grid[scene_id]
         tmp_grid = - torch.ones(current_density_grid.shape).cuda()
-       
-         
+
+
         X = torch.arange(self.grid_size, dtype=torch.int32, device=self.density_bitfield[scene_id].device).split(S)
         Y = torch.arange(self.grid_size, dtype=torch.int32, device=self.density_bitfield[scene_id].device).split(S)
         Z = torch.arange(self.grid_size, dtype=torch.int32, device=self.density_bitfield[scene_id].device).split(S)
@@ -669,7 +694,7 @@ class NeRFRenderer(nn.Module):
         for xs in X:
             for ys in Y:
                 for zs in Z:
-                    
+
                     # construct points
                     xx, yy, zz = custom_meshgrid(xs, ys, zs)
                     coords = torch.cat([xx.reshape(-1, 1), yy.reshape(-1, 1), zz.reshape(-1, 1)], dim=-1) # [N, 3], in [0, 128)
@@ -686,12 +711,12 @@ class NeRFRenderer(nn.Module):
                         cas_xyzs += (torch.rand_like(cas_xyzs) * 2 - 1) * half_grid_size
                         # query density
                         sigmas = self.density(cas_xyzs.cuda())['sigma'].reshape(-1).detach()
-                        # assign 
+                        # assign
                         tmp_grid[cas, indices] = sigmas
-        
+
         # ema update
         if not self.teacher_flag:
-            current_density_grid = self.density_grid[scene_id]        
+            current_density_grid = self.density_grid[scene_id]
         valid_mask =current_density_grid >= 0
 
         self.density_grid[scene_id][valid_mask] = torch.maximum(current_density_grid[valid_mask] * decay, tmp_grid[valid_mask].cuda())
@@ -738,7 +763,7 @@ class NeRFRenderer(nn.Module):
                     weights_sum[b:b+1, head:tail] = results_['weights_sum']
                     image[b:b+1, head:tail] = results_['image']
                     head += max_ray_batch
-            
+
             results = {}
             results['depth'] = depth
             results['image'] = image
