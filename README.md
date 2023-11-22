@@ -14,6 +14,8 @@ Abstract: We introduce HyperFields, a method for generating text-conditioned NeR
 
 ![teaser](./static/images/figures/HyperFields_teaser_RLfix.jpg)
 
+![complex](https://github.com/threedle/hyperfields/assets/29670153/dd7374f3-cac5-467e-bf9b-d4331aae41a8)
+
 
 ## Installation
 
