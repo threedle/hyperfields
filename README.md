@@ -1,4 +1,4 @@
-# HyperFields ICML 2024
+# HyperFields [ICML 2024]
 The offcial repo for HyperFields
 # HyperFields: Towards Zero-Shot Generation of NeRFs from Text, ICML 2024
 
