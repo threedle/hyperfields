@@ -108,11 +108,10 @@ We build upon [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusio
 
 ## Citation
 ```
-@article{babu2023hyperfields,
-title={HyperFields: Towards Zero-Shot Generation of NeRFs from Text},
-author={Babu, Sudarshan and Liu, Richard and Zhou, Avery and Maire, Michael and Shakhnarovich, Greg and Hanocka, Rana},
-journal={arXiv preprint arXiv:2310.17075},
-year={2023}
+@inproceedings{babuhyperfields,
+  title={HyperFields: Towards Zero-Shot Generation of NeRFs from Text},
+  author={Babu, Sudarshan and Liu, Richard and Zhou, Avery and Maire, Michael and Shakhnarovich, Greg and Hanocka, Rana},
+  booktitle={Forty-first International Conference on Machine Learning}
 }
 ```
 
